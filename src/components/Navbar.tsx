@@ -1,8 +1,9 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { UtensilsCrossed, ShoppingCart, User } from 'lucide-react';
+import { UtensilsCrossed, ShoppingCart } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import UserMenu from '@/components/UserMenu';
 
 const Navbar = () => {
   return (
@@ -30,13 +31,7 @@ const Navbar = () => {
             <Button variant="ghost" size="icon" className="text-god-green">
               <ShoppingCart className="h-5 w-5" />
             </Button>
-            <Button variant="outline" className="text-god-green border-god-green hover:bg-god-green hover:text-white">
-              <User className="h-4 w-4 mr-2" />
-              Log in
-            </Button>
-            <Button className="bg-god-orange text-white hover:bg-orange-600">
-              Sign up
-            </Button>
+            <UserMenu />
           </div>
         </nav>
       </div>
