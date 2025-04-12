@@ -14,11 +14,20 @@ const MealPlanner = () => {
   const [mealPlan, setMealPlan] = useState<MealPlan | null>(null);
   const { toast } = useToast();
 
-  const handleGenerateMealPlan = async (preferences: Record<string, string>) => {
+  const handleGenerateMealPlan = async (preferences: Record<string, string | string[]>) => {
     setIsLoading(true);
 
     try {
-      const generatedMealPlan = await generateMealPlan(preferences);
+      // Convert any array values to comma-separated strings for the API
+      const formattedPreferences = Object.entries(preferences).reduce(
+        (acc, [key, value]) => {
+          acc[key] = Array.isArray(value) ? value.join(', ') : value;
+          return acc;
+        },
+        {} as Record<string, string>
+      );
+
+      const generatedMealPlan = await generateMealPlan(formattedPreferences);
       setMealPlan(generatedMealPlan);
       setStep('results');
       toast({
