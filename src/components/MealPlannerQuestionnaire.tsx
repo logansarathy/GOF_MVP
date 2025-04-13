@@ -11,13 +11,25 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 
+// Define the form data type to match what we're using
+interface MealPlannerFormData {
+  dietaryPreferences: string;
+  allergies: string;
+  calorieGoal: string;
+  mealCount: string;
+  cookingSkill: string;
+  additionalInfo: string;
+  dietType: string;
+  healthGoals: string[];
+}
+
 interface MealPlannerQuestionnaireProps {
-  onSubmit: (data: Record<string, string>) => void;
+  onSubmit: (data: MealPlannerFormData) => void;
   isLoading: boolean;
 }
 
 const MealPlannerQuestionnaire: React.FC<MealPlannerQuestionnaireProps> = ({ onSubmit, isLoading }) => {
-  const form = useForm({
+  const form = useForm<MealPlannerFormData>({
     defaultValues: {
       dietaryPreferences: '',
       allergies: '',
@@ -41,7 +53,7 @@ const MealPlannerQuestionnaire: React.FC<MealPlannerQuestionnaireProps> = ({ onS
     }
   };
 
-  const handleSubmit = (data: Record<string, string>) => {
+  const handleSubmit = (data: MealPlannerFormData) => {
     onSubmit(data);
   };
 

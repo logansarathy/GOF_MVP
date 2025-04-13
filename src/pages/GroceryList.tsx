@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -14,7 +13,6 @@ import { MealPlan } from '@/types/meal';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 
-// Grocery item type
 interface GroceryItem {
   id: string;
   name: string;
@@ -23,7 +21,6 @@ interface GroceryItem {
   quantity: string;
 }
 
-// Group grocery items by category
 type GroupedItems = {
   [category: string]: GroceryItem[];
 };
@@ -38,26 +35,22 @@ const GroceryList = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Load items from local storage on component mount
   useEffect(() => {
     const savedItems = localStorage.getItem('groceryItems');
     if (savedItems) {
       setItems(JSON.parse(savedItems));
     }
     
-    // Try to load the last meal plan from local storage
     const savedMealPlan = localStorage.getItem('lastMealPlan');
     if (savedMealPlan) {
       setLastMealPlan(JSON.parse(savedMealPlan));
     }
   }, []);
 
-  // Save items to local storage whenever they change
   useEffect(() => {
     localStorage.setItem('groceryItems', JSON.stringify(items));
   }, [items]);
 
-  // Add a new item
   const addItem = () => {
     if (!newItemName.trim()) {
       toast({
@@ -78,7 +71,7 @@ const GroceryList = () => {
 
     setItems(prevItems => [...prevItems, newItem]);
     setNewItemName('');
-    setNewItemQuantity('');
+    setNewItemQuantity();
     
     toast({
       title: "Item added",
@@ -86,7 +79,6 @@ const GroceryList = () => {
     });
   };
 
-  // Toggle item checked state
   const toggleItemCheck = (id: string) => {
     setItems(prevItems =>
       prevItems.map(item =>
@@ -95,7 +87,6 @@ const GroceryList = () => {
     );
   };
 
-  // Delete an item
   const deleteItem = (id: string) => {
     setItems(prevItems => prevItems.filter(item => item.id !== id));
     toast({
@@ -104,7 +95,6 @@ const GroceryList = () => {
     });
   };
 
-  // Clear all checked items
   const clearCheckedItems = () => {
     setItems(prevItems => prevItems.filter(item => !item.checked));
     toast({
@@ -113,7 +103,6 @@ const GroceryList = () => {
     });
   };
 
-  // Group items by category
   const groupedItems = items.reduce<GroupedItems>((groups, item) => {
     const category = item.category;
     if (!groups[category]) {
@@ -123,7 +112,6 @@ const GroceryList = () => {
     return groups;
   }, {});
 
-  // Extract ingredients from meal plan
   const extractIngredientsFromMealPlan = () => {
     if (!lastMealPlan) {
       toast({
@@ -137,15 +125,12 @@ const GroceryList = () => {
     setIsLoading(true);
     
     try {
-      // Create a set to deduplicate ingredients
       const ingredients = new Set<string>();
       const { meals } = lastMealPlan;
       
-      // Extract ingredients from all meals
       Object.values(meals).forEach(mealCategory => {
         mealCategory.forEach(meal => {
           meal.ingredients.forEach(ingredient => {
-            // Clean up ingredient text to extract just the item name
             const cleanIngredient = ingredient
               .replace(/^\d+(\.\d+)?\s*(cup|tbsp|tsp|oz|g|lb|ml|l|bunch|clove|pinch|to taste).+\s+/, '')
               .replace(/,.*$/, '')
@@ -156,7 +141,6 @@ const GroceryList = () => {
         });
       });
       
-      // Create new grocery items from ingredients
       const newItems = Array.from(ingredients).map(name => ({
         id: crypto.randomUUID(),
         name,
@@ -165,7 +149,6 @@ const GroceryList = () => {
         quantity: '',
       }));
       
-      // Add all new items that don't already exist (by name)
       const existingNames = new Set(items.map(item => item.name.toLowerCase()));
       const itemsToAdd = newItems.filter(item => !existingNames.has(item.name.toLowerCase()));
       
@@ -192,12 +175,10 @@ const GroceryList = () => {
       setIsLoading(false);
     }
   };
-  
-  // Guess category based on ingredient name
+
   const guessCategory = (ingredient: string): string => {
     ingredient = ingredient.toLowerCase();
     
-    // Define category patterns
     const categories: Record<string, string[]> = {
       "Produce": ["apple", "banana", "lettuce", "tomato", "onion", "garlic", "potato", "carrot", "broccoli", "spinach", "kale", "avocado", "lemon", "lime", "berry", "fruit", "vegetable"],
       "Meat & Seafood": ["chicken", "beef", "pork", "lamb", "turkey", "fish", "salmon", "tuna", "shrimp", "meat"],
@@ -209,7 +190,6 @@ const GroceryList = () => {
       "Snacks": ["chip", "cracker", "cookie", "candy", "chocolate", "nut", "popcorn"],
     };
     
-    // Check each category for matching patterns
     for (const [category, patterns] of Object.entries(categories)) {
       if (patterns.some(pattern => ingredient.includes(pattern))) {
         return category;
@@ -221,6 +201,13 @@ const GroceryList = () => {
 
   const goToMealPlanner = () => {
     navigate('/meal-planner');
+  };
+
+  const switchToAddTab = () => {
+    const addTabTrigger = document.querySelector('[data-value="add"]') as HTMLElement;
+    if (addTabTrigger) {
+      addTabTrigger.click();
+    }
   };
 
   return (
@@ -300,7 +287,7 @@ const GroceryList = () => {
                     <div className="text-center py-8">
                       <Package className="h-12 w-12 mx-auto text-gray-300 mb-2" />
                       <p className="text-gray-500">No items in your grocery list</p>
-                      <Button className="mt-4" variant="outline" onClick={() => document.querySelector('[data-value="add"]')?.click()}>
+                      <Button className="mt-4" variant="outline" onClick={switchToAddTab}>
                         Add Your First Item
                       </Button>
                     </div>

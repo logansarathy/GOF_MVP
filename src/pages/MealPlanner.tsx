@@ -8,13 +8,25 @@ import { MealPlan } from '@/types/meal';
 import { useToast } from '@/hooks/use-toast';
 import { generateMealPlan } from '@/api/mealPlannerApi';
 
+// Define the form data interface to match the questionnaire
+interface MealPlannerFormData {
+  dietaryPreferences: string;
+  allergies: string;
+  calorieGoal: string;
+  mealCount: string;
+  cookingSkill: string;
+  additionalInfo: string;
+  dietType: string;
+  healthGoals: string[];
+}
+
 const MealPlanner = () => {
   const [step, setStep] = useState<'questionnaire' | 'results'>('questionnaire');
   const [isLoading, setIsLoading] = useState(false);
   const [mealPlan, setMealPlan] = useState<MealPlan | null>(null);
   const { toast } = useToast();
 
-  const handleGenerateMealPlan = async (preferences: Record<string, string | string[]>) => {
+  const handleGenerateMealPlan = async (preferences: MealPlannerFormData) => {
     setIsLoading(true);
 
     try {
