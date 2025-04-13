@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MealPlannerQuestionnaire from '@/components/MealPlannerQuestionnaire';
 import MealPlannerResults from '@/components/MealPlannerResults';
+import AiModelSettings from '@/components/AiModelSettings';
 import { MealPlan } from '@/types/meal';
 import { useToast } from '@/hooks/use-toast';
 import { generateMealPlan } from '@/api/mealPlannerApi';
@@ -18,6 +19,7 @@ interface MealPlannerFormData {
   additionalInfo: string;
   dietType: string;
   healthGoals: string[];
+  modelChoice?: string; // Added model choice option
 }
 
 const MealPlanner = () => {
@@ -38,6 +40,39 @@ const MealPlanner = () => {
         },
         {} as Record<string, string>
       );
+
+      // If using custom model, check if the API key is set
+      if (preferences.modelChoice === 'custom' && !localStorage.getItem('custom_model_api_key')) {
+        toast({
+          title: "API Key Missing",
+          description: "Please configure your custom AI model API key in settings",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      // If using OpenAI, check if the API key is set
+      if (preferences.modelChoice === 'openai' && !localStorage.getItem('openai_api_key')) {
+        toast({
+          title: "API Key Missing",
+          description: "Please configure your OpenAI API key in settings",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      // If using Claude, check if the API key is set
+      if (preferences.modelChoice === 'claude' && !localStorage.getItem('claude_api_key')) {
+        toast({
+          title: "API Key Missing",
+          description: "Please configure your Claude API key in settings",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
 
       const generatedMealPlan = await generateMealPlan(formattedPreferences);
       setMealPlan(generatedMealPlan);
@@ -74,10 +109,15 @@ const MealPlanner = () => {
           </p>
 
           {step === 'questionnaire' ? (
-            <MealPlannerQuestionnaire 
-              onSubmit={handleGenerateMealPlan} 
-              isLoading={isLoading} 
-            />
+            <>
+              <MealPlannerQuestionnaire 
+                onSubmit={handleGenerateMealPlan} 
+                isLoading={isLoading} 
+              />
+              <div className="max-w-md mx-auto">
+                <AiModelSettings />
+              </div>
+            </>
           ) : (
             <MealPlannerResults 
               mealPlan={mealPlan} 

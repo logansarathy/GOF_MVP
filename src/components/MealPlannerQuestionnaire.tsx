@@ -21,6 +21,7 @@ interface MealPlannerFormData {
   additionalInfo: string;
   dietType: string;
   healthGoals: string[];
+  modelChoice?: string;
 }
 
 interface MealPlannerQuestionnaireProps {
@@ -39,6 +40,7 @@ const MealPlannerQuestionnaire: React.FC<MealPlannerQuestionnaireProps> = ({ onS
       additionalInfo: '',
       dietType: '',
       healthGoals: [],
+      modelChoice: 'gemini',
     },
   });
 
@@ -72,6 +74,13 @@ const MealPlannerQuestionnaire: React.FC<MealPlannerQuestionnaireProps> = ({ onS
     { id: 'maintenance', label: 'Maintenance' },
     { id: 'heart-health', label: 'Heart Health' },
     { id: 'energy-boost', label: 'Energy Boost' },
+  ];
+
+  const aiModels = [
+    { value: 'gemini', label: 'Gemini (Default)' },
+    { value: 'openai', label: 'OpenAI GPT' },
+    { value: 'claude', label: 'Anthropic Claude' },
+    { value: 'custom', label: 'Custom AI Model' },
   ];
 
   return (
@@ -287,26 +296,83 @@ const MealPlannerQuestionnaire: React.FC<MealPlannerQuestionnaireProps> = ({ onS
             )}
           />
           
+          {/* New AI Model Selection */}
           <FormField
             control={form.control}
-            name="additionalInfo"
+            name="modelChoice"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Additional Information</FormLabel>
-                <FormControl>
-                  <Textarea 
-                    placeholder="Any other preferences, dislikes, or information that might help us create your meal plan..." 
-                    className="min-h-[100px]"
-                    {...field} 
-                  />
-                </FormControl>
+                <FormLabel>AI Model for Meal Generation</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select AI model" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {aiModels.map(model => (
+                      <SelectItem key={model.value} value={model.value}>
+                        {model.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormDescription>
-                  Share any other details that could help personalize your meal plan.
+                  Choose which AI model you want to use for generating your meal plan.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
+          
+          {form.watch('modelChoice') === 'custom' && (
+            <FormField
+              control={form.control}
+              name="additionalInfo"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Custom AI Model Instructions</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Provide specific instructions for your custom AI model..." 
+                      className="min-h-[100px]"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Add any special instructions for your custom AI model.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+          
+          {form.watch('modelChoice') !== 'custom' && (
+            <FormField
+              control={form.control}
+              name="additionalInfo"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Additional Information</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Any other preferences, dislikes, or information that might help us create your meal plan..." 
+                      className="min-h-[100px]"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Share any other details that could help personalize your meal plan.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
           
           <Button 
             type="submit" 

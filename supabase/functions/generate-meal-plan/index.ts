@@ -5,6 +5,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 const supabaseUrl = Deno.env.get("SUPABASE_URL") as string;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") as string;
 const geminiApiKey = Deno.env.get("GEMINI_API_KEY") as string;
+const openaiApiKey = Deno.env.get("OPENAI_API_KEY") as string;
+const claudeApiKey = Deno.env.get("CLAUDE_API_KEY") as string;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,11 +25,41 @@ serve(async (req) => {
     const { preferences, userId } = await req.json();
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Generate prompt for Gemini
+    // Generate prompt for the selected AI model
     const prompt = generatePrompt(preferences);
 
-    // Call Gemini API
-    const mealPlan = await generateMealPlanWithGemini(prompt);
+    // Determine which AI model to use based on the user's preference
+    let mealPlan;
+    const modelChoice = preferences.modelChoice || 'gemini';
+    
+    switch (modelChoice) {
+      case 'openai':
+        if (openaiApiKey) {
+          mealPlan = await generateMealPlanWithOpenAI(prompt);
+        } else {
+          console.warn("OpenAI API key not configured, falling back to Gemini");
+          mealPlan = await generateMealPlanWithGemini(prompt);
+        }
+        break;
+      case 'claude':
+        if (claudeApiKey) {
+          mealPlan = await generateMealPlanWithClaude(prompt);
+        } else {
+          console.warn("Claude API key not configured, falling back to Gemini");
+          mealPlan = await generateMealPlanWithGemini(prompt);
+        }
+        break;
+      case 'custom':
+        // For custom, we'll use the additionalInfo field as instructions
+        // and default to Gemini as the model
+        const customPrompt = generateCustomPrompt(preferences);
+        mealPlan = await generateMealPlanWithGemini(customPrompt);
+        break;
+      case 'gemini':
+      default:
+        mealPlan = await generateMealPlanWithGemini(prompt);
+        break;
+    }
 
     // Store the meal plan in the database if user is logged in
     if (userId && userId !== 'anonymous') {
@@ -114,8 +146,27 @@ function generatePrompt(preferences: Record<string, string>): string {
   `;
 }
 
+// Custom prompt generator that incorporates user's custom instructions
+function generateCustomPrompt(preferences: Record<string, string>): string {
+  const basePrompt = generatePrompt(preferences);
+  
+  // Add the custom instructions from the additionalInfo field
+  return `
+    ${basePrompt}
+    
+    IMPORTANT CUSTOM INSTRUCTIONS:
+    ${preferences.additionalInfo || 'No specific custom instructions provided.'}
+    
+    Still ensure you follow the JSON format specified above regardless of custom instructions.
+  `;
+}
+
 async function generateMealPlanWithGemini(prompt: string) {
   try {
+    if (!geminiApiKey) {
+      throw new Error("Gemini API key is not configured");
+    }
+    
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`,
       {
@@ -175,6 +226,121 @@ async function generateMealPlanWithGemini(prompt: string) {
     return mealPlan;
   } catch (error) {
     console.error("Error calling Gemini API:", error);
+    throw new Error(`Failed to generate meal plan: ${error.message}`);
+  }
+}
+
+async function generateMealPlanWithOpenAI(prompt: string) {
+  try {
+    if (!openaiApiKey) {
+      throw new Error("OpenAI API key is not configured");
+    }
+    
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${openaiApiKey}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: "You are a nutritionist specializing in creating meal plans. Output ONLY valid JSON."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        response_format: { type: "json_object" }
+      })
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${JSON.stringify(data)}`);
+    }
+
+    if (!data.choices || data.choices.length === 0) {
+      throw new Error("No response from OpenAI API");
+    }
+
+    const textResponse = data.choices[0].message.content;
+    
+    try {
+      const mealPlan = JSON.parse(textResponse);
+      
+      // Ensure generatedOn is set to the current date if not provided
+      if (!mealPlan.generatedOn) {
+        mealPlan.generatedOn = new Date().toISOString();
+      }
+      
+      return mealPlan;
+    } catch (parseError) {
+      throw new Error(`Failed to parse JSON from OpenAI response: ${parseError.message}`);
+    }
+  } catch (error) {
+    console.error("Error calling OpenAI API:", error);
+    throw new Error(`Failed to generate meal plan: ${error.message}`);
+  }
+}
+
+async function generateMealPlanWithClaude(prompt: string) {
+  try {
+    if (!claudeApiKey) {
+      throw new Error("Claude API key is not configured");
+    }
+    
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": claudeApiKey,
+        "anthropic-version": "2023-06-01"
+      },
+      body: JSON.stringify({
+        model: "claude-3-sonnet-20240229",
+        max_tokens: 4000,
+        temperature: 0.7,
+        system: "You are a nutritionist specializing in creating meal plans. Output ONLY valid JSON.",
+        messages: [
+          {
+            role: "user",
+            content: prompt
+          }
+        ]
+      })
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(`Claude API error: ${JSON.stringify(data)}`);
+    }
+
+    // Extract the JSON part from the response
+    const textResponse = data.content[0].text;
+    const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
+    
+    if (!jsonMatch) {
+      throw new Error("Could not extract JSON from Claude response");
+    }
+
+    const jsonStr = jsonMatch[0];
+    const mealPlan = JSON.parse(jsonStr);
+
+    // Ensure generatedOn is set to the current date if not provided
+    if (!mealPlan.generatedOn) {
+      mealPlan.generatedOn = new Date().toISOString();
+    }
+
+    return mealPlan;
+  } catch (error) {
+    console.error("Error calling Claude API:", error);
     throw new Error(`Failed to generate meal plan: ${error.message}`);
   }
 }
