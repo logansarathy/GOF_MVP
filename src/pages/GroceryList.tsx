@@ -15,6 +15,7 @@ import { MealPlan } from '@/types/meal';
 import GroceryCategory from '@/components/grocery/GroceryCategory';
 import GroceryAddItemForm from '@/components/grocery/GroceryAddItemForm';
 import GroceryList from '@/components/grocery/GroceryList';
+import StoreInventory from '@/components/grocery/StoreInventory';
 
 // Define the grocery item interface
 interface GroceryItem {
@@ -315,6 +316,8 @@ const GroceryListPage = () => {
                   </div>
                 </CardContent>
               </Card>
+              
+              <StoreInventory groceryItems={groceryItems} />
             </div>
           </div>
         </div>
