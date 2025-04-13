@@ -2,76 +2,23 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Phone, Store, ShoppingBag, Edit, Plus, Trash2, WhatsApp, Save } from 'lucide-react';
+import { Store, ShoppingBag, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-// Store interface
-interface StoreItem {
-  id: string;
-  name: string;
-  quantity: number;
-}
-
-interface Store {
-  id: string;
-  name: string;
-  address: string;
-  phone: string;
-  inventory: StoreItem[];
-}
+import { Store as StoreType, StoreItem, Message } from '@/types/store';
+import { getInitialStores, getInitialMessages, sendWhatsApp } from '@/utils/storeUtils';
+import StoreForm from './StoreForm';
+import InventoryItemForm from './InventoryItemForm';
+import StoreList from './StoreList';
+import InventoryList from './InventoryList';
+import MessagesList from './MessagesList';
 
 const StoreInventoryManager: React.FC = () => {
-  const [stores, setStores] = useState<Store[]>([
-    {
-      id: '1',
-      name: 'Whole Foods Market',
-      address: '123 Main St, Cityville',
-      phone: '+15551234567',
-      inventory: [
-        { id: '1', name: 'Apple', quantity: 100 },
-        { id: '2', name: 'Banana', quantity: 200 },
-        { id: '3', name: 'Spinach', quantity: 50 },
-        { id: '4', name: 'Chicken', quantity: 30 },
-        { id: '5', name: 'Bread', quantity: 40 },
-      ]
-    },
-    {
-      id: '2',
-      name: 'Farmers Fresh Market',
-      address: '456 Oak Ave, Townsville',
-      phone: '+15559876543',
-      inventory: [
-        { id: '1', name: 'Apple', quantity: 80 },
-        { id: '2', name: 'Banana', quantity: 150 },
-        { id: '3', name: 'Spinach', quantity: 70 },
-        { id: '4', name: 'Chicken', quantity: 20 },
-        { id: '5', name: 'Bread', quantity: 30 },
-      ]
-    },
-    {
-      id: '3',
-      name: 'Green Valley Grocers',
-      address: '789 Pine Rd, Villageton',
-      phone: '+15551112222',
-      inventory: [
-        { id: '1', name: 'Apple', quantity: 120 },
-        { id: '2', name: 'Banana', quantity: 180 },
-        { id: '3', name: 'Spinach', quantity: 40 },
-        { id: '4', name: 'Chicken', quantity: 35 },
-        { id: '5', name: 'Bread', quantity: 50 },
-      ]
-    },
-  ]);
-  
+  const [stores, setStores] = useState<StoreType[]>(getInitialStores());
   const [selectedStore, setSelectedStore] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
-  const [newStore, setNewStore] = useState<Omit<Store, 'id' | 'inventory'>>({
+  const [newStore, setNewStore] = useState<Omit<StoreType, 'id' | 'inventory'>>({
     name: '',
     address: '',
     phone: '',
@@ -80,30 +27,10 @@ const StoreInventoryManager: React.FC = () => {
     name: '',
     quantity: 0,
   });
-  const [editingStore, setEditingStore] = useState<Store | null>(null);
+  const [editingStore, setEditingStore] = useState<StoreType | null>(null);
   const [editingItem, setEditingItem] = useState<StoreItem | null>(null);
   const [activeTab, setActiveTab] = useState<string>('stores');
-  const [messages, setMessages] = useState<{id: string, sender: string, text: string, timestamp: string}[]>([
-    {
-      id: '1',
-      sender: 'Customer',
-      text: 'Hello! I need 5 apples, 2 loaves of bread, and some chicken for tonight.',
-      timestamp: new Date(Date.now() - 3600000).toLocaleTimeString()
-    },
-    {
-      id: '2',
-      sender: 'Store',
-      text: 'We have all those items in stock! Would you like us to prepare them for pickup or delivery?',
-      timestamp: new Date(Date.now() - 3500000).toLocaleTimeString()
-    },
-    {
-      id: '3',
-      sender: 'Customer',
-      text: 'Pickup please, I can come by around 5pm.',
-      timestamp: new Date(Date.now() - 3400000).toLocaleTimeString()
-    }
-  ]);
-  const [replyText, setReplyText] = useState('');
+  const [messages, setMessages] = useState<Message[]>(getInitialMessages());
   const { toast } = useToast();
 
   const handleStoreSelect = (storeId: string) => {
@@ -121,7 +48,7 @@ const StoreInventoryManager: React.FC = () => {
     setIsEditDialogOpen(true);
   };
 
-  const handleEditStore = (store: Store) => {
+  const handleEditStore = (store: StoreType) => {
     setEditingStore(store);
     setNewStore({
       name: store.name,
@@ -132,15 +59,6 @@ const StoreInventoryManager: React.FC = () => {
   };
 
   const handleSaveStore = () => {
-    if (!newStore.name || !newStore.address || !newStore.phone) {
-      toast({
-        title: "Error",
-        description: "Please fill in all fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (editingStore) {
       // Update existing store
       setStores(stores.map(store => 
@@ -206,14 +124,7 @@ const StoreInventoryManager: React.FC = () => {
   };
 
   const handleSaveItem = () => {
-    if (!selectedStore || !newItem.name || newItem.quantity < 0) {
-      toast({
-        title: "Error",
-        description: "Please fill in all fields correctly.",
-        variant: "destructive",
-      });
-      return;
-    }
+    if (!selectedStore) return;
 
     const storeIndex = stores.findIndex(store => store.id === selectedStore);
     if (storeIndex === -1) return;
@@ -265,9 +176,7 @@ const StoreInventoryManager: React.FC = () => {
     });
   };
 
-  const handleSendReply = () => {
-    if (!replyText.trim()) return;
-    
+  const handleSendReply = (replyText: string) => {
     const newMessage = {
       id: Date.now().toString(),
       sender: 'Store',
@@ -276,7 +185,6 @@ const StoreInventoryManager: React.FC = () => {
     };
     
     setMessages([...messages, newMessage]);
-    setReplyText('');
     
     toast({
       title: "Message Sent",
@@ -285,16 +193,7 @@ const StoreInventoryManager: React.FC = () => {
   };
 
   const handleSendWhatsApp = (phone: string) => {
-    // Format phone number (remove any non-digit characters)
-    const formattedPhone = phone.replace(/\D/g, '');
-    
-    // Create WhatsApp URL
-    const messageText = "Hello, this is a message from your local store. How can we help you today?";
-    const encodedMessage = encodeURIComponent(messageText);
-    const whatsappURL = `https://wa.me/${formattedPhone}?text=${encodedMessage}`;
-    
-    // Open WhatsApp in a new tab
-    window.open(whatsappURL, '_blank');
+    sendWhatsApp(phone);
     
     toast({
       title: "WhatsApp Opening",
@@ -335,58 +234,13 @@ const StoreInventoryManager: React.FC = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-[500px] pr-4">
-                <div className="space-y-4">
-                  {stores.map(store => (
-                    <Card key={store.id} className="p-4 border hover:border-god-green cursor-pointer">
-                      <div className="flex justify-between">
-                        <div onClick={() => handleStoreSelect(store.id)}>
-                          <h3 className="font-medium text-lg">{store.name}</h3>
-                          <p className="text-gray-500">{store.address}</p>
-                          <p className="text-gray-500">{store.phone}</p>
-                          <p className="text-sm mt-2">
-                            <span className="font-medium">{store.inventory.length}</span> items in inventory
-                          </p>
-                        </div>
-                        <div className="flex flex-col space-y-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditStore(store);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteStore(store.id);
-                            }}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleSendWhatsApp(store.phone);
-                            }}
-                            className="text-green-600 hover:text-green-800"
-                          >
-                            <WhatsApp className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </ScrollArea>
+              <StoreList 
+                stores={stores} 
+                onSelectStore={handleStoreSelect}
+                onEditStore={handleEditStore}
+                onDeleteStore={handleDeleteStore}
+                onSendWhatsApp={handleSendWhatsApp}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -411,47 +265,11 @@ const StoreInventoryManager: React.FC = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-[500px] pr-4">
-                  <div className="space-y-2">
-                    {getSelectedStore()?.inventory.map(item => (
-                      <div 
-                        key={item.id} 
-                        className="flex justify-between items-center p-3 border rounded hover:bg-gray-50"
-                      >
-                        <div>
-                          <span className="font-medium">{item.name}</span>
-                          <span className="text-gray-500 ml-2">
-                            Qty: 
-                            <span className={`ml-1 ${
-                              item.quantity > 50 ? 'text-green-600' : 
-                              item.quantity > 10 ? 'text-yellow-600' : 
-                              'text-red-600'
-                            }`}>
-                              {item.quantity}
-                            </span>
-                          </span>
-                        </div>
-                        <div className="flex space-x-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleEditItem(item)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleDeleteItem(item.id)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
+                <InventoryList 
+                  items={getSelectedStore()?.inventory || []}
+                  onEditItem={handleEditItem}
+                  onDeleteItem={handleDeleteItem}
+                />
               </CardContent>
             </Card>
           )}
@@ -466,176 +284,35 @@ const StoreInventoryManager: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-col h-[500px]">
-                  <ScrollArea className="flex-grow mb-4">
-                    <div className="space-y-4">
-                      {messages.map(message => (
-                        <div 
-                          key={message.id} 
-                          className={`p-3 rounded-lg max-w-[80%] ${
-                            message.sender === 'Store' 
-                              ? 'bg-god-green text-white ml-auto' 
-                              : 'bg-gray-100 mr-auto'
-                          }`}
-                        >
-                          <div className="font-medium text-sm mb-1">
-                            {message.sender} - {message.timestamp}
-                          </div>
-                          <div>{message.text}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                  
-                  <div className="flex space-x-2">
-                    <Input 
-                      placeholder="Type your reply here..." 
-                      value={replyText} 
-                      onChange={(e) => setReplyText(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSendReply();
-                        }
-                      }}
-                    />
-                    <Button 
-                      onClick={handleSendReply}
-                      disabled={!replyText.trim()}
-                      className="bg-god-green text-white"
-                    >
-                      Send
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      onClick={() => handleSendWhatsApp(getSelectedStore()?.phone || '')}
-                      className="text-green-600"
-                    >
-                      <WhatsApp className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+                <MessagesList 
+                  messages={messages}
+                  onSendReply={handleSendReply}
+                  onSendWhatsApp={handleSendWhatsApp}
+                  storePhone={getSelectedStore()?.phone || ''}
+                />
               </CardContent>
             </Card>
           )}
         </TabsContent>
       </Tabs>
 
-      {/* Store Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editingStore ? 'Edit Store' : 'Add New Store'}</DialogTitle>
-            <DialogDescription>
-              {editingStore 
-                ? 'Update the store information below.' 
-                : 'Fill in the store details to add a new store.'}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="store-name">Store Name</Label>
-              <Input
-                id="store-name"
-                value={newStore.name}
-                onChange={(e) => setNewStore({...newStore, name: e.target.value})}
-                placeholder="Enter store name"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="store-address">Address</Label>
-              <Input
-                id="store-address"
-                value={newStore.address}
-                onChange={(e) => setNewStore({...newStore, address: e.target.value})}
-                placeholder="Enter store address"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="store-phone">Phone Number (with country code)</Label>
-              <div className="flex items-center space-x-2">
-                <Phone className="h-5 w-5 text-gray-400" />
-                <Input
-                  id="store-phone"
-                  value={newStore.phone}
-                  onChange={(e) => setNewStore({...newStore, phone: e.target.value})}
-                  placeholder="+1 555 123 4567"
-                />
-              </div>
-              <p className="text-sm text-gray-500">
-                Include the country code (e.g., +1 for US).
-              </p>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSaveStore} 
-              className="bg-god-green text-white"
-            >
-              <Save className="mr-2 h-4 w-4" />
-              {editingStore ? 'Update Store' : 'Add Store'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <StoreForm 
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        onSave={handleSaveStore}
+        editingStore={editingStore}
+        newStore={newStore}
+        setNewStore={setNewStore}
+      />
 
-      {/* Inventory Item Dialog */}
-      <Dialog open={isItemDialogOpen} onOpenChange={setIsItemDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editingItem ? 'Edit Item' : 'Add New Item'}</DialogTitle>
-            <DialogDescription>
-              {editingItem 
-                ? 'Update the inventory item information.' 
-                : 'Add a new item to inventory.'}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="item-name">Item Name</Label>
-              <Input
-                id="item-name"
-                value={newItem.name}
-                onChange={(e) => setNewItem({...newItem, name: e.target.value})}
-                placeholder="Enter item name"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="item-quantity">Quantity</Label>
-              <Input
-                id="item-quantity"
-                type="number"
-                min="0"
-                value={newItem.quantity}
-                onChange={(e) => setNewItem({...newItem, quantity: parseInt(e.target.value) || 0})}
-                placeholder="Enter quantity"
-              />
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsItemDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSaveItem} 
-              className="bg-god-green text-white"
-            >
-              <Save className="mr-2 h-4 w-4" />
-              {editingItem ? 'Update Item' : 'Add Item'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <InventoryItemForm 
+        isOpen={isItemDialogOpen}
+        onClose={() => setIsItemDialogOpen(false)}
+        onSave={handleSaveItem}
+        editingItem={editingItem}
+        newItem={newItem}
+        setNewItem={setNewItem}
+      />
     </>
   );
 };
