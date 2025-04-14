@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { MealPlan } from '@/types/meal';
 
 // Mock meal plan data structure for fallback when API is not available
 const mockMealPlan = {
@@ -163,5 +164,41 @@ export const generateMealPlan = async (preferences: Record<string, string>) => {
       variant: 'destructive',
     });
     return mockMealPlan;
+  }
+};
+
+export const getActiveMealPlan = async (): Promise<MealPlan | null> => {
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    
+    if (!userData.user) {
+      // Try to get the last meal plan from local storage if not logged in
+      const lastPlan = localStorage.getItem('lastMealPlan');
+      return lastPlan ? JSON.parse(lastPlan) : null;
+    }
+    
+    // Try to get active meal plan from Supabase
+    const { data, error } = await supabase
+      .from('meal_plans')
+      .select('*')
+      .eq('user_id', userData.user.id)
+      .eq('is_active', true)
+      .single();
+    
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No active meal plan found
+        return null;
+      }
+      throw error;
+    }
+    
+    return data?.plan_data as MealPlan;
+  } catch (error) {
+    console.error('Error fetching active meal plan:', error);
+    
+    // Fallback to last plan in localStorage
+    const lastPlan = localStorage.getItem('lastMealPlan');
+    return lastPlan ? JSON.parse(lastPlan) : null;
   }
 };

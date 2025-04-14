@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { MealPlan, Meal } from '@/types/meal';
 import { useNavigate } from 'react-router-dom';
-import { Clock, Users, ChefHat, ArrowLeft, ShoppingCart } from 'lucide-react';
+import { Clock, ChefHat, ArrowLeft, ShoppingCart } from 'lucide-react';
 
 interface MealPlannerResultsProps {
   mealPlan: MealPlan | null;
