@@ -155,7 +155,7 @@ export const generateMealPlan = async (preferences: Record<string, string>) => {
       return mockMealPlan;
     }
 
-    return data.mealPlan;
+    return data.mealPlan as MealPlan;
   } catch (error) {
     console.error('Error generating meal plan:', error);
     toast({
@@ -193,7 +193,7 @@ export const getActiveMealPlan = async (): Promise<MealPlan | null> => {
       throw error;
     }
     
-    return data?.plan_data as MealPlan;
+    return data?.plan_data as unknown as MealPlan;
   } catch (error) {
     console.error('Error fetching active meal plan:', error);
     

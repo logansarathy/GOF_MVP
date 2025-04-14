@@ -52,7 +52,11 @@ const MealPlans = () => {
         }
 
         // Convert data to proper type
-        const typedData = data as StoredMealPlan[];
+        const typedData = data.map(item => ({
+          ...item,
+          plan_data: item.plan_data as unknown as MealPlan
+        })) as StoredMealPlan[];
+        
         setMealPlans(typedData);
       } catch (error) {
         console.error('Error fetching meal plans:', error);

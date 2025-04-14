@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import MealPlannerQuestionnaire from '@/components/MealPlannerQuestionnaire';
 import MealPlannerResults from '@/components/MealPlannerResults';
 import AiModelSettings from '@/components/AiModelSettings';
+import { Button } from '@/components/ui/button';
 import { MealPlan } from '@/types/meal';
 import { useToast } from '@/hooks/use-toast';
 import { generateMealPlan } from '@/api/mealPlannerApi';
