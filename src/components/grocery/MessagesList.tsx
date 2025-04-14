@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { WhatsApp } from 'lucide-react';
+import { Send } from 'lucide-react';
 import { Message } from '@/types/store';
 
 interface MessagesListProps {
@@ -73,7 +73,7 @@ const MessagesList: React.FC<MessagesListProps> = ({
           onClick={() => onSendWhatsApp(storePhone)}
           className="text-green-600"
         >
-          <WhatsApp className="h-4 w-4" />
+          <Send className="h-4 w-4" />
         </Button>
       </div>
     </div>

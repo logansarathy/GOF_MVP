@@ -3,7 +3,7 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Edit, Trash2, WhatsApp } from 'lucide-react';
+import { Edit, Trash2, Send } from 'lucide-react';
 import { Store } from '@/types/store';
 
 interface StoreListProps {
@@ -66,7 +66,7 @@ const StoreList: React.FC<StoreListProps> = ({
                   }}
                   className="text-green-600 hover:text-green-800"
                 >
-                  <WhatsApp className="h-4 w-4" />
+                  <Send className="h-4 w-4" />
                 </Button>
               </div>
             </div>
