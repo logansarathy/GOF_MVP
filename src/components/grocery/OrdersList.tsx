@@ -79,7 +79,7 @@ const OrdersList: React.FC<OrdersListProps> = ({ orders, onUpdateStatus }) => {
                 <span>${order.total.toFixed(2)}</span>
               </div>
             </div>
-            {order.status !== 'completed' && order.status !== 'cancelled' && (
+            {(order.status !== 'completed' && order.status !== 'cancelled') && (
               <div className="mt-4 flex gap-2 justify-end">
                 {order.status === 'pending' && (
                   <Button 
@@ -99,7 +99,7 @@ const OrdersList: React.FC<OrdersListProps> = ({ orders, onUpdateStatus }) => {
                     Mark Completed
                   </Button>
                 )}
-                {order.status !== 'cancelled' && (
+                {(order.status === 'pending' || order.status === 'processing') && (
                   <Button 
                     onClick={() => onUpdateStatus(order.id, 'cancelled')}
                     variant="destructive"

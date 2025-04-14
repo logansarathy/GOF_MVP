@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,6 +11,8 @@ import MealPlans from "./pages/MealPlans";
 import GroceryList from "./pages/GroceryList";
 import StoreDashboard from "./pages/StoreDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminDashboardHome from "./pages/AdminDashboardHome";
+import StoreDashboardHome from "./pages/StoreDashboardHome";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import StoreListPage from "./pages/StoreListPage";
@@ -45,6 +48,8 @@ const ProtectedRoute = ({
 
 // AppRoutes component to use useAuth hook
 const AppRoutes = () => {
+  const { userRole } = useAuth();
+  
   return (
     <Routes>
       <Route path="/" element={<Index />} />
@@ -52,9 +57,11 @@ const AppRoutes = () => {
       <Route path="/meal-plans" element={<MealPlans />} />
       <Route path="/grocery-list" element={<GroceryList />} />
       <Route path="/stores" element={<StoreListPage />} />
-      <Route path="/store-dashboard" element={
-        <ProtectedRoute requiredRole="store_owner">
-          <StoreDashboard />
+      
+      {/* Admin routes */}
+      <Route path="/admin" element={
+        <ProtectedRoute requiredRole="admin">
+          <AdminDashboardHome />
         </ProtectedRoute>
       } />
       <Route path="/admin-dashboard" element={
@@ -62,6 +69,19 @@ const AppRoutes = () => {
           <AdminDashboard />
         </ProtectedRoute>
       } />
+      
+      {/* Store owner routes */}
+      <Route path="/store-owner" element={
+        <ProtectedRoute requiredRole="store_owner">
+          <StoreDashboardHome />
+        </ProtectedRoute>
+      } />
+      <Route path="/store-dashboard" element={
+        <ProtectedRoute requiredRole="store_owner">
+          <StoreDashboard />
+        </ProtectedRoute>
+      } />
+      
       <Route path="/auth" element={<Auth />} />
       <Route path="*" element={<NotFound />} />
     </Routes>

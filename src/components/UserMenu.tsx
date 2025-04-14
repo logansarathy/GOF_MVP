@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, LogOut, Store, ShoppingBag, Shield } from 'lucide-react';
+import { User, LogOut, Store, ShoppingBag, Shield, LayoutDashboard } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 const UserMenu = () => {
@@ -62,14 +62,14 @@ const UserMenu = () => {
         
         {/* Role-specific options */}
         {isAdmin() && (
-          <DropdownMenuItem onClick={() => navigate('/admin-dashboard')}>
-            <Shield className="h-4 w-4 mr-2" />
+          <DropdownMenuItem onClick={() => navigate('/admin')}>
+            <LayoutDashboard className="h-4 w-4 mr-2" />
             Admin Dashboard
           </DropdownMenuItem>
         )}
         
         {(isStoreOwner() || isAdmin()) && (
-          <DropdownMenuItem onClick={() => navigate('/store-dashboard')}>
+          <DropdownMenuItem onClick={() => navigate('/store-owner')}>
             <Store className="h-4 w-4 mr-2" />
             Store Dashboard
           </DropdownMenuItem>
