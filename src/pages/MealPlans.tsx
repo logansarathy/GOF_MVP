@@ -1,5 +1,4 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -51,7 +50,6 @@ const MealPlans = () => {
           throw error;
         }
 
-        // Convert data to proper type
         const typedData = data.map(item => ({
           ...item,
           plan_data: item.plan_data as unknown as MealPlan
@@ -77,13 +75,11 @@ const MealPlans = () => {
     if (!user) return;
 
     try {
-      // First, set all plans to inactive
       await supabase
         .from('meal_plans')
         .update({ is_active: false })
         .eq('user_id', user.id);
 
-      // Then set the selected plan to active
       const { error } = await supabase
         .from('meal_plans')
         .update({ is_active: true })
@@ -93,7 +89,6 @@ const MealPlans = () => {
         throw error;
       }
 
-      // Update local state
       setMealPlans(prev => 
         prev.map(plan => ({
           ...plan,
@@ -129,7 +124,6 @@ const MealPlans = () => {
         throw error;
       }
 
-      // Update local state
       setMealPlans(prev => prev.filter(plan => plan.id !== planToDelete));
       
       toast({
@@ -162,7 +156,6 @@ const MealPlans = () => {
     setSelectedPlan(null);
   };
 
-  // Show meal plan detail view
   if (selectedPlan) {
     return (
       <div className="min-h-screen flex flex-col">
