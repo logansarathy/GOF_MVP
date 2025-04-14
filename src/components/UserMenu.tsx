@@ -11,11 +11,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, LogOut } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { User, LogOut, Store, ShoppingBag, Shield } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 
 const UserMenu = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin, isStoreOwner } = useAuth();
+  const navigate = useNavigate();
 
   if (!user) {
     return (
@@ -58,6 +59,27 @@ const UserMenu = () => {
         <DropdownMenuItem disabled>
           {user.email}
         </DropdownMenuItem>
+        
+        {/* Role-specific options */}
+        {isAdmin() && (
+          <DropdownMenuItem onClick={() => navigate('/admin-dashboard')}>
+            <Shield className="h-4 w-4 mr-2" />
+            Admin Dashboard
+          </DropdownMenuItem>
+        )}
+        
+        {(isStoreOwner() || isAdmin()) && (
+          <DropdownMenuItem onClick={() => navigate('/store-dashboard')}>
+            <Store className="h-4 w-4 mr-2" />
+            Store Dashboard
+          </DropdownMenuItem>
+        )}
+        
+        <DropdownMenuItem onClick={() => navigate('/grocery-list')}>
+          <ShoppingBag className="h-4 w-4 mr-2" />
+          My Orders
+        </DropdownMenuItem>
+        
         <DropdownMenuItem disabled>
           Profile
         </DropdownMenuItem>

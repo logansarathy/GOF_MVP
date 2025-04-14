@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import StoreHeader from '@/components/grocery/StoreHeader';
 import StoreInventoryManager from '@/components/grocery/StoreInventoryManager';
+import { Button } from '@/components/ui/button'; // Add Button import
 
 const StoreDashboard = () => {
   return (

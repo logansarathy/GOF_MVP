@@ -5,13 +5,19 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
+// Define user roles
+export type UserRole = 'customer' | 'admin' | 'store_owner';
+
 type AuthContextType = {
   session: Session | null;
   user: User | null;
-  signUp: (email: string, password: string, fullName: string) => Promise<void>;
+  userRole: UserRole;
+  signUp: (email: string, password: string, fullName: string, role?: UserRole) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   loading: boolean;
+  isAdmin: () => boolean;
+  isStoreOwner: () => boolean;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,9 +25,42 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [userRole, setUserRole] = useState<UserRole>('customer');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Helper functions to check roles
+  const isAdmin = () => userRole === 'admin';
+  const isStoreOwner = () => userRole === 'store_owner';
+
+  // Function to fetch and set user role
+  const fetchUserRole = async (userId: string) => {
+    try {
+      // For now, we'll simulate role checking
+      // Later, we'll implement actual database role checking
+      if (userId === 'admin-id') {
+        setUserRole('admin');
+      } else if (userId === 'store-owner-id') {
+        setUserRole('store_owner');
+      } else {
+        setUserRole('customer');
+      }
+      
+      // TODO: Implement actual role fetching from database
+      // const { data, error } = await supabase
+      //   .from('user_roles')
+      //   .select('role')
+      //   .eq('user_id', userId)
+      //   .single();
+      
+      // if (error) throw error;
+      // setUserRole(data?.role || 'customer');
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+      setUserRole('customer'); // Default to customer on error
+    }
+  };
 
   useEffect(() => {
     // Set up auth state listener first
@@ -30,9 +69,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         
-        if (event === 'SIGNED_IN') {
+        if (event === 'SIGNED_IN' && session?.user) {
+          fetchUserRole(session.user.id);
+          
+          // Redirect based on role (will be implemented later)
+          // For now, navigate to home
           navigate('/');
         } else if (event === 'SIGNED_OUT') {
+          setUserRole('customer');
           navigate('/auth');
         }
       }
@@ -42,13 +86,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        fetchUserRole(session.user.id);
+      }
+      
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (email: string, password: string, fullName: string, role: UserRole = 'customer') => {
     try {
       setLoading(true);
       const { error } = await supabase.auth.signUp({
@@ -57,6 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         options: {
           data: {
             full_name: fullName,
+            role: role, // Store role in user metadata
           },
         },
       });
@@ -128,7 +178,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, signUp, signIn, signOut, loading }}>
+    <AuthContext.Provider value={{ 
+      session, 
+      user, 
+      userRole, 
+      signUp, 
+      signIn, 
+      signOut, 
+      loading,
+      isAdmin,
+      isStoreOwner
+    }}>
       {children}
     </AuthContext.Provider>
   );
