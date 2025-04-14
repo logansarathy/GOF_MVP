@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +12,7 @@ import StoreDashboard from "./pages/StoreDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import StoreListPage from "./pages/StoreListPage";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +51,7 @@ const AppRoutes = () => {
       <Route path="/meal-planner" element={<MealPlanner />} />
       <Route path="/meal-plans" element={<MealPlans />} />
       <Route path="/grocery-list" element={<GroceryList />} />
+      <Route path="/stores" element={<StoreListPage />} />
       <Route path="/store-dashboard" element={
         <ProtectedRoute requiredRole="store_owner">
           <StoreDashboard />

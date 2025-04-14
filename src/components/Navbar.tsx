@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { UtensilsCrossed, ShoppingCart } from 'lucide-react';
+import { UtensilsCrossed, ShoppingCart, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import UserMenu from '@/components/UserMenu';
 
@@ -23,8 +23,9 @@ const Navbar = () => {
           <Link to="/grocery-list" className="text-sm font-medium transition-colors hover:text-god-green">
             Grocery List
           </Link>
-          <Link to="/store-dashboard" className="text-sm font-medium transition-colors hover:text-god-green">
-            For Stores
+          <Link to="/stores" className="text-sm font-medium transition-colors hover:text-god-green">
+            <Store className="h-4 w-4 inline mr-1" />
+            Stores
           </Link>
           
           <div className="ml-4 flex items-center gap-2">

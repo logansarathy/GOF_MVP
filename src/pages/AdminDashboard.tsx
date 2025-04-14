@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/Navbar';
@@ -8,18 +8,80 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Store, Users, ShoppingBag, BarChart } from 'lucide-react';
+import OrdersList from '@/components/grocery/OrdersList';
+import StoreList from '@/components/grocery/StoreList';
+import { Order } from '@/types/order';
+import { Store as StoreType } from '@/types/store';
+import { useToast } from '@/hooks/use-toast';
+import { getInitialStores } from '@/utils/storeUtils';
+
+// Mock data for orders - in a real app this would come from Supabase
+const getMockOrders = (): Order[] => [
+  {
+    id: '1234abcd',
+    userId: 'user1',
+    userName: 'John Doe',
+    storeId: 'store1',
+    storeName: 'Green Grocers',
+    items: [
+      { id: 'item1', productId: 'prod1', productName: 'Apples', quantity: 2, price: 1.99 },
+      { id: 'item2', productId: 'prod2', productName: 'Bananas', quantity: 3, price: 0.99 }
+    ],
+    total: 7.95,
+    status: 'pending',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: '5678efgh',
+    userId: 'user2',
+    userName: 'Jane Smith',
+    storeId: 'store2',
+    storeName: 'Fresh Market',
+    items: [
+      { id: 'item3', productId: 'prod3', productName: 'Oranges', quantity: 4, price: 1.49 },
+      { id: 'item4', productId: 'prod4', productName: 'Grapes', quantity: 1, price: 3.99 }
+    ],
+    total: 9.95,
+    status: 'processing',
+    createdAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+    updatedAt: new Date(Date.now() - 43200000).toISOString() // 12 hours ago
+  }
+];
+
+// Mock data for users - in a real app this would come from Supabase
+const getMockUsers = () => [
+  { id: 'user1', email: 'john@example.com', role: 'customer', created_at: new Date().toISOString() },
+  { id: 'user2', email: 'jane@example.com', role: 'customer', created_at: new Date().toISOString() },
+  { id: 'user3', email: 'store@example.com', role: 'store_owner', created_at: new Date().toISOString() },
+  { id: 'user4', email: 'admin@example.com', role: 'admin', created_at: new Date().toISOString() }
+];
 
 const AdminDashboard = () => {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const [orders, setOrders] = useState<Order[]>(getMockOrders());
+  const [stores, setStores] = useState<StoreType[]>(getInitialStores());
+  const [users] = useState(getMockUsers());
+  const { toast } = useToast();
 
-  // Redirect if not admin (we'll implement admin check later)
-  React.useEffect(() => {
-    if (!user) {
-      navigate('/auth');
-    }
-    // TODO: Check if user is admin
-  }, [user, navigate]);
+  // Handle order status updates
+  const handleUpdateOrderStatus = (orderId: string, status: Order['status']) => {
+    setOrders(orders.map(order => 
+      order.id === orderId 
+        ? { ...order, status, updatedAt: new Date().toISOString() } 
+        : order
+    ));
+    
+    toast({
+      title: "Order Updated",
+      description: `Order #${orderId.substring(0, 8)} has been marked as ${status}.`,
+    });
+  };
+
+  // Log user info for debugging
+  console.log("User in AdminDashboard:", user);
+  console.log("Is admin:", isAdmin());
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -65,8 +127,29 @@ const AdminDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="mb-4">Manage all stores in the system.</p>
-                {/* Store management content will go here */}
+                <p className="mb-4">All stores in the system:</p>
+                <StoreList 
+                  stores={stores}
+                  onSelectStore={(id) => {
+                    console.log("Selected store:", id);
+                    // In a real app, this would navigate to a store detail page
+                  }}
+                  onEditStore={(store) => {
+                    console.log("Edit store:", store);
+                    // In a real app, this would open a store edit dialog
+                  }}
+                  onDeleteStore={(id) => {
+                    setStores(stores.filter(store => store.id !== id));
+                    toast({
+                      title: "Store Deleted",
+                      description: "Store has been removed from the system.",
+                    });
+                  }}
+                  onSendWhatsApp={(phone) => {
+                    console.log("Send WhatsApp to:", phone);
+                    // In a real app, this would open WhatsApp
+                  }}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -80,8 +163,41 @@ const AdminDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="mb-4">Manage users and roles.</p>
-                {/* User management content will go here */}
+                <p className="mb-4">All users in the system:</p>
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-muted border-b">
+                        <th className="px-4 py-2 text-left">Email</th>
+                        <th className="px-4 py-2 text-left">Role</th>
+                        <th className="px-4 py-2 text-left">Joined</th>
+                        <th className="px-4 py-2 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((user) => (
+                        <tr key={user.id} className="border-b">
+                          <td className="px-4 py-2">{user.email}</td>
+                          <td className="px-4 py-2">
+                            <span className={`inline-block px-2 py-1 rounded-full text-xs ${
+                              user.role === 'admin' 
+                                ? 'bg-red-100 text-red-800' 
+                                : user.role === 'store_owner'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-green-100 text-green-800'
+                            }`}>
+                              {user.role}
+                            </span>
+                          </td>
+                          <td className="px-4 py-2">{new Date(user.created_at).toLocaleDateString()}</td>
+                          <td className="px-4 py-2 text-right">
+                            <Button variant="ghost" size="sm">Edit</Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -95,8 +211,11 @@ const AdminDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="mb-4">View and manage all orders across stores.</p>
-                {/* Order management content will go here */}
+                <p className="mb-4">All orders across stores:</p>
+                <OrdersList 
+                  orders={orders} 
+                  onUpdateStatus={handleUpdateOrderStatus} 
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -110,8 +229,27 @@ const AdminDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="mb-4">System-wide analytics and reports.</p>
-                {/* Analytics content will go here */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="text-2xl font-bold">{orders.length}</div>
+                      <p className="text-muted-foreground">Total Orders</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="text-2xl font-bold">{stores.length}</div>
+                      <p className="text-muted-foreground">Active Stores</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="text-2xl font-bold">{users.length}</div>
+                      <p className="text-muted-foreground">Registered Users</p>
+                    </CardContent>
+                  </Card>
+                </div>
+                <p className="text-center text-muted-foreground">Detailed analytics will be implemented in a future update.</p>
               </CardContent>
             </Card>
           </TabsContent>
