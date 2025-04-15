@@ -22,25 +22,19 @@ const AuthLayout = ({ children }: AuthLayoutProps) => {
           Your browser does not support the video tag.
         </video>
         {/* Overlay to ensure text is readable */}
-        <div className="absolute inset-0 bg-black/50 z-10"></div>
+        <div className="absolute inset-0 bg-black/60 z-10"></div>
       </div>
 
-      {/* Header */}
-      <div className="flex items-center justify-center p-4 border-b relative z-20">
-        <Link to="/" className="flex items-center gap-2">
-          <UtensilsCrossed className="h-6 w-6 text-god-green" />
-          <span className="text-xl font-bold text-god-green">Gods Own Food</span>
-        </Link>
+      {/* Food Your Way Text */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center z-20 pointer-events-none">
+        <h1 className="text-7xl font-bold text-white tracking-tight mb-4">Food</h1>
+        <h1 className="text-7xl font-bold text-white tracking-tight mb-4">Your</h1>
+        <h1 className="text-7xl font-bold text-white tracking-tight mb-32">Way</h1>
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex items-center justify-center p-6 relative z-20">
-        <div className="w-full max-w-md space-y-6 bg-white/90 p-8 rounded-lg shadow-xl backdrop-blur-sm">
-          <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold">Welcome to Gods Own Food</h1>
-            <p className="text-muted-foreground">Sign in to your account or create a new one</p>
-          </div>
-          
+      <div className="flex-1 flex items-end justify-center pb-16 relative z-20">
+        <div className="w-full max-w-md flex flex-col items-center gap-4">
           {children}
         </div>
       </div>
