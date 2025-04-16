@@ -22,31 +22,35 @@ const AuthLayout = ({ children }: AuthLayoutProps) => {
           Your browser does not support the video tag.
         </video>
         {/* Overlay to ensure text is readable */}
-        <div className="absolute inset-0 bg-black/50 z-10"></div>
+        <div className="absolute inset-0 bg-black/60 z-10"></div>
       </div>
 
       {/* Header */}
-      <div className="flex items-center justify-center p-4 border-b relative z-20">
+      <div className="flex items-center justify-between p-6 relative z-20">
         <Link to="/" className="flex items-center gap-2">
-          <UtensilsCrossed className="h-6 w-6 text-god-green" />
-          <span className="text-xl font-bold text-god-green">Gods Own Food</span>
+          <UtensilsCrossed className="h-7 w-7 text-god-orange" />
+          <span className="text-xl font-bold text-white">Gods Own Food</span>
         </Link>
       </div>
 
       {/* Content */}
       <div className="flex-1 flex items-center justify-center p-6 relative z-20">
-        <div className="w-full max-w-md space-y-6 bg-white/90 p-8 rounded-lg shadow-xl backdrop-blur-sm">
-          <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold">Welcome to Gods Own Food</h1>
-            <p className="text-muted-foreground">Sign in to your account or create a new one</p>
+        <div className="w-full max-w-md bg-white/85 p-8 rounded-2xl shadow-2xl backdrop-blur-sm transform transition-all duration-300 hover:shadow-god-orange/20 hover:shadow-xl">
+          <div className="text-center space-y-4 mb-8">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-god-green to-god-orange bg-clip-text text-transparent">Gods Own Food</h1>
+            <p className="text-gray-600">Sign in to your account or create a new one</p>
           </div>
           
           {children}
         </div>
+      </div>
+      
+      {/* Footer */}
+      <div className="relative z-20 p-4 text-center text-white/80 text-sm">
+        <p>© 2025 Gods Own Food. All rights reserved.</p>
       </div>
     </div>
   );
 };
 
 export default AuthLayout;
-
