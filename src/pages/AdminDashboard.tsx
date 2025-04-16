@@ -1,21 +1,25 @@
-
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import AdminLayout from '@/components/layouts/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Store, Users, ShoppingBag, BarChart } from 'lucide-react';
+import { 
+  Store, Users, ShoppingBag, BarChart, Settings, FileText, 
+  Plus, Search, Filter, RefreshCcw 
+} from 'lucide-react';
 import OrdersList from '@/components/grocery/OrdersList';
 import StoreList from '@/components/grocery/StoreList';
 import { Order } from '@/types/order';
 import { Store as StoreType } from '@/types/store';
 import { useToast } from '@/hooks/use-toast';
 import { getInitialStores } from '@/utils/storeUtils';
+import { 
+  Table, TableBody, TableCaption, TableCell, 
+  TableHead, TableHeader, TableRow 
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
 
-// Mock data for orders - in a real app this would come from Supabase
 const getMockOrders = (): Order[] => [
   {
     id: '1234abcd',
@@ -44,12 +48,11 @@ const getMockOrders = (): Order[] => [
     ],
     total: 9.95,
     status: 'processing',
-    createdAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-    updatedAt: new Date(Date.now() - 43200000).toISOString() // 12 hours ago
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 43200000).toISOString()
   }
 ];
 
-// Mock data for users - in a real app this would come from Supabase
 const getMockUsers = () => [
   { id: 'user1', email: 'john@example.com', role: 'customer', created_at: new Date().toISOString() },
   { id: 'user2', email: 'jane@example.com', role: 'customer', created_at: new Date().toISOString() },
@@ -58,14 +61,14 @@ const getMockUsers = () => [
 ];
 
 const AdminDashboard = () => {
-  const { user, isAdmin } = useAuth();
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get('tab') || 'stores';
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>(getMockOrders());
   const [stores, setStores] = useState<StoreType[]>(getInitialStores());
   const [users] = useState(getMockUsers());
   const { toast } = useToast();
 
-  // Handle order status updates
   const handleUpdateOrderStatus = (orderId: string, status: Order['status']) => {
     setOrders(orders.map(order => 
       order.id === orderId 
@@ -79,184 +82,284 @@ const AdminDashboard = () => {
     });
   };
 
-  // Log user info for debugging
-  console.log("User in AdminDashboard:", user);
-  console.log("Is admin:", isAdmin());
-
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-grow container py-12">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <Button 
-            variant="outline" 
-            className="text-god-green border-god-green hover:bg-god-green hover:text-white"
-            onClick={() => navigate('/store-dashboard')}
-          >
-            Go to Store View
-          </Button>
-        </div>
+    <AdminLayout 
+      title="Admin Control Panel" 
+      icon={<Settings className="h-7 w-7" />}
+    >
+      <div className="mb-6">
+        <Button 
+          variant="outline" 
+          className="text-god-green border-god-green hover:bg-god-green hover:text-white"
+          onClick={() => navigate('/admin')}
+        >
+          Back to Dashboard
+        </Button>
+      </div>
 
-        <Tabs defaultValue="stores">
-          <TabsList className="grid grid-cols-4 mb-8">
-            <TabsTrigger value="stores" className="flex items-center gap-2">
-              <Store className="h-4 w-4" />
-              Stores
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Users
-            </TabsTrigger>
-            <TabsTrigger value="orders" className="flex items-center gap-2">
-              <ShoppingBag className="h-4 w-4" />
-              Orders
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <BarChart className="h-4 w-4" />
-              Analytics
-            </TabsTrigger>
-          </TabsList>
+      <Tabs defaultValue={defaultTab}>
+        <TabsList className="grid grid-cols-5 mb-8 bg-white p-1 rounded-lg shadow-sm">
+          <TabsTrigger value="stores" className="flex items-center gap-2 data-[state=active]:bg-green-50 data-[state=active]:text-god-green">
+            <Store className="h-4 w-4" />
+            Stores
+          </TabsTrigger>
+          <TabsTrigger value="users" className="flex items-center gap-2 data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-600">
+            <Users className="h-4 w-4" />
+            Users
+          </TabsTrigger>
+          <TabsTrigger value="orders" className="flex items-center gap-2 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-600">
+            <ShoppingBag className="h-4 w-4" />
+            Orders
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-600">
+            <BarChart className="h-4 w-4" />
+            Analytics
+          </TabsTrigger>
+          <TabsTrigger value="reports" className="flex items-center gap-2 data-[state=active]:bg-amber-50 data-[state=active]:text-amber-600">
+            <FileText className="h-4 w-4" />
+            Reports
+          </TabsTrigger>
+        </TabsList>
 
-          <TabsContent value="stores">
-            <Card>
-              <CardHeader>
+        <TabsContent value="stores">
+          <Card className="bg-white shadow-md border-0">
+            <CardHeader>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <CardTitle className="text-xl flex items-center">
                   <Store className="mr-2 h-5 w-5 text-god-green" />
                   Store Management
                 </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="mb-4">All stores in the system:</p>
-                <StoreList 
-                  stores={stores}
-                  onSelectStore={(id) => {
-                    console.log("Selected store:", id);
-                    // In a real app, this would navigate to a store detail page
-                  }}
-                  onEditStore={(store) => {
-                    console.log("Edit store:", store);
-                    // In a real app, this would open a store edit dialog
-                  }}
-                  onDeleteStore={(id) => {
-                    setStores(stores.filter(store => store.id !== id));
-                    toast({
-                      title: "Store Deleted",
-                      description: "Store has been removed from the system.",
-                    });
-                  }}
-                  onSendWhatsApp={(phone) => {
-                    console.log("Send WhatsApp to:", phone);
-                    // In a real app, this would open WhatsApp
-                  }}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="Search stores..." 
+                      className="pl-8 w-full sm:w-[250px]" 
+                    />
+                  </div>
+                  <Button className="bg-god-green hover:bg-green-700">
+                    <Plus className="mr-1 h-4 w-4" /> Add Store
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <StoreList 
+                stores={stores}
+                onSelectStore={(id) => {
+                  console.log("Selected store:", id);
+                  // In a real app, this would navigate to a store detail page
+                }}
+                onEditStore={(store) => {
+                  console.log("Edit store:", store);
+                  // In a real app, this would open a store edit dialog
+                }}
+                onDeleteStore={(id) => {
+                  setStores(stores.filter(store => store.id !== id));
+                  toast({
+                    title: "Store Deleted",
+                    description: "Store has been removed from the system.",
+                  });
+                }}
+                onSendWhatsApp={(phone) => {
+                  console.log("Send WhatsApp to:", phone);
+                  // In a real app, this would open WhatsApp
+                }}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-          <TabsContent value="users">
-            <Card>
-              <CardHeader>
+        <TabsContent value="users">
+          <Card className="bg-white shadow-md border-0">
+            <CardHeader>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <CardTitle className="text-xl flex items-center">
-                  <Users className="mr-2 h-5 w-5 text-god-green" />
+                  <Users className="mr-2 h-5 w-5 text-indigo-500" />
                   User Management
                 </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="mb-4">All users in the system:</p>
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="bg-muted border-b">
-                        <th className="px-4 py-2 text-left">Email</th>
-                        <th className="px-4 py-2 text-left">Role</th>
-                        <th className="px-4 py-2 text-left">Joined</th>
-                        <th className="px-4 py-2 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {users.map((user) => (
-                        <tr key={user.id} className="border-b">
-                          <td className="px-4 py-2">{user.email}</td>
-                          <td className="px-4 py-2">
-                            <span className={`inline-block px-2 py-1 rounded-full text-xs ${
-                              user.role === 'admin' 
-                                ? 'bg-red-100 text-red-800' 
-                                : user.role === 'store_owner'
-                                ? 'bg-blue-100 text-blue-800'
-                                : 'bg-green-100 text-green-800'
-                            }`}>
-                              {user.role}
-                            </span>
-                          </td>
-                          <td className="px-4 py-2">{new Date(user.created_at).toLocaleDateString()}</td>
-                          <td className="px-4 py-2 text-right">
-                            <Button variant="ghost" size="sm">Edit</Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="Search users..." 
+                      className="pl-8 w-full sm:w-[250px]" 
+                    />
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                  >
+                    <Filter className="mr-1 h-4 w-4" /> Filter
+                  </Button>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Joined</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {users.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>
+                          <span className={`inline-block px-2 py-1 rounded-full text-xs ${
+                            user.role === 'admin' 
+                              ? 'bg-red-100 text-red-800' 
+                              : user.role === 'store_owner'
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-green-100 text-green-800'
+                          }`}>
+                            {user.role}
+                          </span>
+                        </TableCell>
+                        <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm">Edit</Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-          <TabsContent value="orders">
-            <Card>
-              <CardHeader>
+        <TabsContent value="orders">
+          <Card className="bg-white shadow-md border-0">
+            <CardHeader>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <CardTitle className="text-xl flex items-center">
-                  <ShoppingBag className="mr-2 h-5 w-5 text-god-green" />
+                  <ShoppingBag className="mr-2 h-5 w-5 text-purple-500" />
                   Order Management
                 </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="mb-4">All orders across stores:</p>
-                <OrdersList 
-                  orders={orders} 
-                  onUpdateStatus={handleUpdateOrderStatus} 
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="analytics">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl flex items-center">
-                  <BarChart className="mr-2 h-5 w-5 text-god-green" />
-                  Analytics Dashboard
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="text-2xl font-bold">{orders.length}</div>
-                      <p className="text-muted-foreground">Total Orders</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="text-2xl font-bold">{stores.length}</div>
-                      <p className="text-muted-foreground">Active Stores</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="text-2xl font-bold">{users.length}</div>
-                      <p className="text-muted-foreground">Registered Users</p>
-                    </CardContent>
-                  </Card>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                  >
+                    <RefreshCcw className="mr-1 h-4 w-4" /> Refresh
+                  </Button>
+                  <Button 
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
+                    Export Orders
+                  </Button>
                 </div>
-                <p className="text-center text-muted-foreground">Detailed analytics will be implemented in a future update.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </main>
-      <Footer />
-    </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <OrdersList 
+                orders={orders} 
+                onUpdateStatus={handleUpdateOrderStatus} 
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="analytics">
+          <Card className="bg-white shadow-md border-0">
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center">
+                <BarChart className="mr-2 h-5 w-5 text-blue-500" />
+                Analytics Dashboard
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <Card className="bg-blue-50 border-0">
+                  <CardContent className="pt-6">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-muted-foreground text-sm">Total Orders</p>
+                        <p className="text-3xl font-bold">{orders.length}</p>
+                      </div>
+                      <ShoppingBag className="h-8 w-8 text-blue-500 opacity-70" />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-green-50 border-0">
+                  <CardContent className="pt-6">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-muted-foreground text-sm">Active Stores</p>
+                        <p className="text-3xl font-bold">{stores.length}</p>
+                      </div>
+                      <Store className="h-8 w-8 text-god-green opacity-70" />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-indigo-50 border-0">
+                  <CardContent className="pt-6">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-muted-foreground text-sm">Registered Users</p>
+                        <p className="text-3xl font-bold">{users.length}</p>
+                      </div>
+                      <Users className="h-8 w-8 text-indigo-500 opacity-70" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              <div className="flex items-center justify-center py-8">
+                <div className="text-center">
+                  <img 
+                    src="/lovable-uploads/6c7819bc-833f-448a-bb29-10fd7528af4c.png" 
+                    alt="Gods Own Food" 
+                    className="h-20 w-20 mx-auto opacity-30" 
+                  />
+                  <p className="text-muted-foreground mt-4">Detailed analytics charts will be implemented in a future update.</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="reports">
+          <Card className="bg-white shadow-md border-0">
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center">
+                <FileText className="mr-2 h-5 w-5 text-amber-500" />
+                Reports
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[
+                  { title: "Sales Report", icon: <BarChart className="h-8 w-8 text-god-green" /> },
+                  { title: "User Activity", icon: <Users className="h-8 w-8 text-indigo-500" /> },
+                  { title: "Inventory Status", icon: <Store className="h-8 w-8 text-blue-500" /> },
+                  { title: "Order Fulfillment", icon: <ShoppingBag className="h-8 w-8 text-purple-500" /> },
+                  { title: "Financial Summary", icon: <FileText className="h-8 w-8 text-amber-500" /> },
+                  { title: "System Logs", icon: <Settings className="h-8 w-8 text-slate-500" /> }
+                ].map((report, index) => (
+                  <Card key={index} className="hover:shadow-md transition-all hover:bg-amber-50">
+                    <CardContent className="pt-6 flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">{report.title}</h3>
+                        <p className="text-sm text-muted-foreground">Generate or view report</p>
+                      </div>
+                      <div className="bg-amber-100 p-2 rounded-full">
+                        {report.icon}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </AdminLayout>
   );
 };
 
