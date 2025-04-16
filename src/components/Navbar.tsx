@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { UtensilsCrossed, ShoppingCart, Store } from 'lucide-react';
+import { ShoppingCart, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import UserMenu from '@/components/UserMenu';
 
@@ -10,7 +10,11 @@ const Navbar = () => {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
         <div className="flex items-center">
-          <UtensilsCrossed className="h-6 w-6 text-god-green mr-2" />
+          <img 
+            src="/lovable-uploads/6c7819bc-833f-448a-bb29-10fd7528af4c.png" 
+            alt="Gods Own Food" 
+            className="h-10 w-10 mr-2" 
+          />
           <Link to="/" className="text-xl font-bold text-god-green">
             Gods Own Food
           </Link>

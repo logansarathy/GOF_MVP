@@ -8,6 +8,15 @@ const Hero = () => {
     <div className="relative py-20 bg-gradient-to-b from-god-light-gray to-white">
       <div className="container flex flex-col items-center text-center lg:flex-row lg:text-left lg:gap-12">
         <div className="space-y-6 max-w-xl">
+          <div className="flex items-center justify-center lg:justify-start mb-4">
+            <img 
+              src="/lovable-uploads/6c7819bc-833f-448a-bb29-10fd7528af4c.png" 
+              alt="Gods Own Food" 
+              className="h-16 w-16 mr-3" 
+            />
+            <span className="text-2xl font-semibold text-god-green">From the plate of god</span>
+          </div>
+          
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
             Eat Healthier with <span className="text-god-green">AI-Powered</span> Meal Planning
           </h1>
@@ -34,6 +43,13 @@ const Hero = () => {
               alt="Healthy meal preparation" 
               className="rounded-xl shadow-xl relative z-10 max-h-[450px] object-cover" 
             />
+            <div className="absolute bottom-4 right-4 bg-white/80 backdrop-blur-sm p-2 rounded-lg shadow-md">
+              <img 
+                src="/lovable-uploads/6c7819bc-833f-448a-bb29-10fd7528af4c.png" 
+                alt="Gods Own Food" 
+                className="h-12 w-12" 
+              />
+            </div>
           </div>
         </div>
       </div>
