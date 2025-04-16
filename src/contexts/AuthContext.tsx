@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -37,17 +36,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Function to fetch and set user role
   const fetchUserRole = async (userId: string) => {
     try {
-      // For now, we'll simulate role checking
-      // Later, we'll implement actual database role checking
-      if (userId === 'admin-id') {
-        setUserRole('admin');
-      } else if (userId === 'store-owner-id') {
-        setUserRole('store_owner');
-      } else {
-        setUserRole('customer');
-      }
+      // For testing purposes - This assigns admin role to any logged in user
+      // In a production app, you would check against your database
+      console.log("Setting user as admin for testing purposes");
+      setUserRole('admin');
       
-      // TODO: Implement actual role fetching from database
+      // In a real application, you would do something like:
       // const { data, error } = await supabase
       //   .from('user_roles')
       //   .select('role')
