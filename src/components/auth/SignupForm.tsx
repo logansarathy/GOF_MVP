@@ -58,7 +58,7 @@ const SignupForm = () => {
             <FormItem>
               <FormLabel>Full Name</FormLabel>
               <FormControl>
-                <Input placeholder="John Doe" {...field} />
+                <Input placeholder="John Doe" className="bg-white border-gray-300 focus:border-indigo-500" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -72,7 +72,7 @@ const SignupForm = () => {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="your@email.com" {...field} />
+                <Input placeholder="your@email.com" className="bg-white border-gray-300 focus:border-indigo-500" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -86,7 +86,7 @@ const SignupForm = () => {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••" {...field} />
+                <Input type="password" placeholder="••••••" className="bg-white border-gray-300 focus:border-indigo-500" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -100,7 +100,7 @@ const SignupForm = () => {
             <FormItem>
               <FormLabel>Confirm Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••" {...field} />
+                <Input type="password" placeholder="••••••" className="bg-white border-gray-300 focus:border-indigo-500" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -117,32 +117,32 @@ const SignupForm = () => {
                 <RadioGroup
                   onValueChange={field.onChange}
                   defaultValue={field.value}
-                  className="flex space-x-1"
+                  className="flex flex-wrap gap-4"
                 >
-                  <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormItem className="flex items-center space-x-2 space-y-0 rounded-md border border-gray-200 p-2 hover:bg-gray-50">
                     <FormControl>
                       <RadioGroupItem value="customer" />
                     </FormControl>
-                    <FormLabel className="font-normal flex items-center">
-                      <User className="h-4 w-4 mr-1" />
+                    <FormLabel className="font-normal flex items-center cursor-pointer">
+                      <User className="h-4 w-4 mr-1 text-violet-500" />
                       Customer
                     </FormLabel>
                   </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormItem className="flex items-center space-x-2 space-y-0 rounded-md border border-gray-200 p-2 hover:bg-gray-50">
                     <FormControl>
                       <RadioGroupItem value="store_owner" />
                     </FormControl>
-                    <FormLabel className="font-normal flex items-center">
-                      <Store className="h-4 w-4 mr-1" />
+                    <FormLabel className="font-normal flex items-center cursor-pointer">
+                      <Store className="h-4 w-4 mr-1 text-indigo-500" />
                       Store Owner
                     </FormLabel>
                   </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormItem className="flex items-center space-x-2 space-y-0 rounded-md border border-gray-200 p-2 hover:bg-gray-50">
                     <FormControl>
                       <RadioGroupItem value="admin" />
                     </FormControl>
-                    <FormLabel className="font-normal flex items-center">
-                      <Shield className="h-4 w-4 mr-1" />
+                    <FormLabel className="font-normal flex items-center cursor-pointer">
+                      <Shield className="h-4 w-4 mr-1 text-purple-500" />
                       Admin
                     </FormLabel>
                   </FormItem>
@@ -155,7 +155,7 @@ const SignupForm = () => {
 
         <Button 
           type="submit" 
-          className="w-full bg-god-orange hover:bg-orange-600 text-white"
+          className="w-full bg-indigo-600 hover:bg-indigo-700 transition-colors mt-6"
           disabled={loading}
         >
           {loading ? 'Loading...' : 'Create Account'}
