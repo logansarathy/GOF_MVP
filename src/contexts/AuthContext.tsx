@@ -36,10 +36,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Function to fetch and set user role
   const fetchUserRole = async (userId: string) => {
     try {
-      // For testing purposes - This assigns admin role to any logged in user
+      // For testing purposes - This assigns both admin and store_owner roles to any logged in user
       // In a production app, you would check against your database
-      console.log("Setting user as admin for testing purposes");
-      setUserRole('admin');
+      console.log("Setting user as admin and store_owner for testing purposes");
+      // Randomly assign admin or store_owner role for testing both interfaces
+      const roles: UserRole[] = ['admin', 'store_owner'];
+      const randomRole = roles[Math.floor(Math.random() * roles.length)];
+      setUserRole(randomRole);
+      console.log(`Assigned role: ${randomRole}`);
       
       // In a real application, you would do something like:
       // const { data, error } = await supabase
